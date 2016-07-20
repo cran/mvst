@@ -1,0 +1,8 @@
+useDynLib(mvst)
+export(cmlSE)
+export(mcSE)
+export(rmvSE)
+importFrom(MCMCpack, riwish)
+importFrom(mvtnorm, rmvnorm)
+importFrom(mnormt, rmnorm, dmnorm)
+importFrom("stats", "cov", "cov2cor", "dnorm", "pnorm", "rgamma", "rnorm", "uniroot", "var")

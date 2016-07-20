@@ -1,0 +1,6 @@
+The mvst package makes use of the GSL C library. In case of
+installation from source, it is necessary to download and install GSL first.
+Under a Linux platform, it is possible to install the "GNU Scientific
+Library (GSL) -- development package" from the package manager,
+under the name "libgsl0-dev".
+

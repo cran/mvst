@@ -3,4 +3,10 @@ installation from source, it is necessary to download and install GSL first.
 Under a Linux platform, it is possible to install the "GNU Scientific
 Library (GSL) -- development package" from the package manager,
 under the name "libgsl0-dev".
+The structure of the configure.ac and of the Makevar.in script, needed
+to interact with the GSL library, are described in
+<http://dirk.eddelbuettel.com/code/rcpp/RcppGSL-intro.pdf>
+The Makevar.win script has been provided by Dr. Robin K. S. Hankin, and
+is also available in the gsl package
+<https://cran.r-project.org/web/packages/gsl/index.html>
 

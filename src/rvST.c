@@ -13,6 +13,12 @@
 
 struct fcv_params {double Ai; double Bi; double CC;};
 
+void my_error_handler(const char *reason, const char *file, int line, int err){
+ if(err > 0){
+  Rprintf("\nAn error occurred in the evaluation of a 1F1 function - fixed.");
+ }
+}
+
 double fcv_density (double x, void * p) {
  struct fcv_params * params = (struct fcv_params *)p;
  double Ai = (params->Ai);
@@ -80,12 +86,6 @@ int rvST(double *values, double *propdens, int *n, int *p, int *N, double *yVec,
  double prop[1];
  double u[1];
  double accept[1];
- 
- void my_error_handler(const char *reason, const char *file, int line, int err){
-  if(err > 0){
-   Rprintf("\nAn error occurred in the evaluation of a 1F1 function - fixed.");
-  }
- }
 
 // int i, j, k;
  size_t i, j;

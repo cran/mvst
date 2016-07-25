@@ -40,7 +40,7 @@ void rvT(double *values, double *propdens, int *n, int *p, int *N, double *yVec,
 // int jj, k;
  size_t jj, k;
  int s;
- double zi;
+// double zi;
  int counter;
  counter = 0;
  for(k = 0; k < *N; k++){	// k = 0;

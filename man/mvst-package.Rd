@@ -3,26 +3,22 @@
 \alias{mvst}
 \docType{package}
 \title{
-Bayesian inference for the multivariate Skew-t model.
+\packageTitle{mvst}
 }
 \description{
-Estimates the multivariate Skew-t (and nested) models under a Bayesian perspective using a Monte Carlo sampling method.
+\packageDescription{mvst}
 }
 \details{
-\tabular{ll}{
-Package: \tab mvst\cr
-Type: \tab Package\cr
-Version: \tab 1.0\cr
-Date: \tab 2016-06-23\cr
-License: \tab GPL (>= 2)\cr
-}
+\packageDESCRIPTION{mvst}
+\packageIndices{mvst}
 }
 \author{
-Brunero Liseo, Antonio Parisi
+\packageAuthor{mvst}
 
-Maintainer: Antonio Parisi <antonio.parisi@uniroma2.it>
+Maintainer: \packageMaintainer{mvst}
 }
 \references{
-Liseo, B. and Parisi, A. (2013) Bayesian inference for the multivariate skew-normal model: a population Monte Carlo approach, Computational Statistics and Data Analysis. doi:10.1016/j.csda.2013.02.007.
+Parisi A, Liseo B (2017). Objective Bayesian Analysis for the Multivariate Skew-t Model. Statistical Methods & Applications. ISSN 1613-981X. doi:10.1007/s10260-017-0404-0
 }
-\keyword{ package }
+\keyword{Skew-elliptical distributions}
+

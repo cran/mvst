@@ -1,56 +1,67 @@
-summary.mcSE = function(estimates){
+summary.mcSE = function(object, ...){
+ # Model's parameters info
+ parInfo = object$parInfo
 
  # Iterations' weights
- iterWeights = estimates$perplexity
+ iterWeights = object$perplexity
  iter.w = iterWeights / sum(iterWeights)
 
- # Marginal likelihood
- log.py = estimates$log.py
- K = max(log.py)
- log.margLike = K + log(sum(exp(log.py-K)*iter.w))
-
  #
- sampleEstimates = estimates$estList
- for(iEst in 1:length(estimates)){
-  estimate = sampleEstimates[[iEst]]
-  for(iPar in 1:length(estimate)){
-   parEstimate = estimate[[iPar]]
-   if(is.null(dim(parEstimate))){
-    sampleEstimates[[iEst]][[iPar]] = sum(sampleEstimates[[iEst]][[iPar]] * iter.w)
-   } else {
-    estVec = numeric(ncol(parEstimate))
-    for(iCol in 1:ncol(parEstimate)){
-    	estVec[iCol] = sum(sampleEstimates[[iEst]][[iPar]][,iCol] * iter.w)
+ sampleEstimates = vector('list', length(object$estlist))
+ names(sampleEstimates) = names(object$estlist)
+ # sampleEstimates = object$estList
+
+ parIndices = which(!(parInfo$names %in% c('z', 'v', 'parInfo')))
+ parNames = parInfo$names[parIndices]
+ parTypes = parInfo$type[parIndices]
+ nPars = length(parNames)
+ postSummaries = object$estlist # [1:5]
+ for(iEst in 1:length(postSummaries)){
+  postSummary = postSummaries[[iEst]]
+  sampleEstimates[[iEst]] = vector('list', nPars)
+  names(sampleEstimates[[iEst]]) = names(object$estlist[[iEst]])
+  for(iPar in 1:nPars){
+   parType = parTypes[iPar]
+   values = postSummary[[iPar]]
+   if(parType == 'u') sampleEstimates[[iEst]][[iPar]] = sum(object$estlist[[iEst]][[iPar]] * iter.w)
+   if(parType %in% c('m', 'SM')){
+    nCols = ncol(values)
+    estVec = numeric(nCols)
+    for(iCol in 1:nCols){
+     estVec[iCol] = sum(values[,iCol] * iter.w)
     }
-    sampleEstimates[[iEst]][[iPar]] = estVec
+    sampleEstimates[[iEst]][[iPar]] = estVec   
    }
+   if(parType == 'SM'){
+    sampleEstimates[[iEst]][[iPar]] = matrix(sampleEstimates[[iEst]][[iPar]], object$p, object$p)
+   }
+   if(parType == 'M'){
+    estVec = matrix(NA, dim(values)[1], dim(values)[2])
+    for(iRow in 1:(dim(values)[1])){
+     for(iCol in 1:(dim(values)[2])){
+      estVec[iRow, iCol] = sum(values[iRow,iCol,] * iter.w)
+     }
+    }
+    sampleEstimates[[iEst]][[iPar]] = estVec   
+   }
+   names(sampleEstimates[[iEst]][[iPar]]) = names(object$estlist[[iEst]][[iPar]])
   }
  }
 
- # T marginal likelihood
- #	K = max(log.norm.cost)	# Costante usata per il calcolo della marginal likelihood
- #	log.py = K + log(sum(exp(log.norm.cost-K)*iter.w))
+ # Marginal likelihood
+ log.py = object$log.py
+ K = max(log.py)
+ log.margLike = K + log(sum(exp(log.py-K)*iter.w))
+ sampleEstimates$log.py = log.margLike
+ 
+ # number of resampled particles
+ sampleEstimates$nResampled = object$nResampled
+ 
+ # perplexity
+ sampleEstimates$perplexity = object$perplexity
 
- # py = sum(norm.cost*iter.w)
-
- # py = sum(norm.cost*n.ricampionati) / sum(n.ricampionati)
- # cat(c(py,'\n'), file='Output/Estimates/pyST.txt', append=T)
-
- # # SN marginal likelihood
- # S = cov(y)*(n-1)/n
- # log.psi = 0
- # for(j in 1:p){
- #  log.psi = log.psi+lgamma((n-1)/2-(j-1)/2)
- # }
- # log.m0 = ((3-2*n)/2)*log(pi)+log.psi-n*log(n)-((n-1)/2)*log(det(S))
- # m0 = exp(log.m0)
- # cat(c(py,m0,'\n'), file='Output/Estimates/py.txt', append=T)
- # # BF = sum(n.ricampionati*exp(log.norm.cost-log.m0))/sum(n.ricampionati)	# Bayes factor
- # BF = sum(exp(log.norm.cost-log.m0)*iter.w)						# Bayes factor
- # cat(BF,'\n', file='Output/Estimates/BF.txt', append=T)
-
- # sampleEstimates = list(postMeans=post.means, otherMeans=other.means, postMode=estimates$post.mode[nrow(estimates$post.mode),], H=estimates$H, n.ricampionati=n.ricampionati, log.py=log.py)
  ans = list(sampleEstimates=sampleEstimates, log.margLike=log.margLike)
- class(ans) = 'summary.mcSE'
- return(ans)
+ class(ans) = 'mcSEsummary'
+ print.summary.mcSE(ans)
+ invisible(ans)
 }

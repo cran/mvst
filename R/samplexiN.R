@@ -1,4 +1,4 @@
-samplexiN = function(y, N, particles, priorList){
+samplexiN = function(y, X, N, particles, priorList){
 # Given the arguments, this function returns a population of MC draws for the values of the variable Xi, in the p-variate Normal model.
  n = nrow(y)
  p = ncol(y)
@@ -14,5 +14,6 @@ samplexiN = function(y, N, particles, priorList){
   xi[iN,] = xi.iN
   log.dxi[iN] = dmnorm(as.numeric(xi.iN), ybar, vxi.iN, log=TRUE)
  }
+ #
  return(list(values=xi, log.dq=log.dxi))
 }

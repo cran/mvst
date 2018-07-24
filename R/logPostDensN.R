@@ -1,25 +1,39 @@
-logPostDensN = function(y, N, particles, priorList, logPriorFunc){
- G = particles$G
+logPostDensN = function(y, X, N, particles, priorList, logPriorFunc){
  n = nrow(y)
  p = ncol(y)
  #
  pmat.indices.w = triangleIndices(p, side='u', dgn=T, dataframe=T)
  n.pmat.indices.w = p * (p+1) / 2
+ #
+ G = particles$G
+ #
+ # Rxi = matrix(0, n*N, p)
+ RM = matrix(0, n*N, p) # xi or B'X
  Ry = matrix(0, n*N, p)
- Rxi = matrix(0, n*N, p)
-# Rpsi = matrix(0, n*N, p)
+ XFlag = !is.null(X)
+ if(XFlag){
+  k = ncol(X)
+  B = particles$B
+  RX = X[rep(1:n, times=N),]
+ } else {
+  xi = particles$xi
+ }
  for(icol in 1:p){
   Ry[,icol] = rep(y[,icol], N)
-  Rxi[,icol] = rep(particles$xi[,icol], each=n)
-#  Rpsi[,icol] = rep(particles$psi[,icol], each=n)
+  if(XFlag){
+   Bcol = matrix(B[,icol,], ncol=k, byrow=T)
+   RB = Bcol[rep(1:N, each=n),]
+   if(k == 1){
+    RM[,icol] = RB*RX
+   } else {
+    RM[,icol] = apply(RB*RX,1,sum)
+   }
+  } else {
+   RM[,icol] = rep(xi[,icol], each=n)
+  }
  }
-# abs.z = abs(as.numeric(t(particles$z)))
-# Rabsz = matrix(rep(abs.z, p), ncol=p)
-# sums.z2 = apply((particles$z)^2, 1, sum)
-# sqrt.v = sqrt(as.numeric(t(particles$v)))
-# Rsqrtv = matrix(rep(sqrt.v, p), ncol=p)
  #
- e = Ry - Rxi
+ e = Ry - RM
  eList = vector('list', p)
  for(ilist in 1:p){
   eList[[ilist]] = matrix(e[,ilist], N, n, byrow=T)
@@ -33,14 +47,14 @@ logPostDensN = function(y, N, particles, priorList, logPriorFunc){
  for(iN in 1:N){
   G.iN = matrix(G[iN,], p, p)
   detG[iN] = det(G.iN)
-  invG.iN = solve(matrix(particles$G[iN,], p, p))
+  invG.iN = solve(G.iN)
   Lambda.iN = matrix(0, p, p)
   Lambda.iN[pmat.indices.w] = LambdaMAT[iN,]
   Lambda.iN[pmat.indices.w[,2:1]] = LambdaMAT[iN,]
   PsiVEC[iN] = sum(t(invG.iN) * Lambda.iN)
  }
  # log-prior density
- log.prior = do.call(logPriorFunc, list(N=N, particles=particles, priorList=priorList))
+ log.prior = do.call(logPriorFunc, list(N=N, p=p, particles=particles, priorList=priorList))
  # loglikelihood
  loglik.normalizing.constant = - (n*p)/2 * log(2*pi) # (log-)constants in the likelihood of non-Skew models
  loglikelihood = (- n/2) * log(detG) - 0.5 * PsiVEC +

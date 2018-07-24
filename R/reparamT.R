@@ -1,6 +1,5 @@
-reparamT = function(N, particles){
-# Reparameterization function
- p = ncol(particles$xi)
+reparamT = function(N, p, particles){
+ # Reparameterization function
  n.pmat.indices.wo = p * (p-1) / 2
  #
 # alpha = matrix(0, N, p)
@@ -20,7 +19,7 @@ reparamT = function(N, particles){
  for(icol in 1:p){
 #  h[,icol] = (G[,diagIndices[icol]] + psi[,icol]^2)^(0.5)
 #  delta[,icol] = psi[,icol] / h[,icol] # (h[,icol])^(-0.5) * psi[,icol]
-  omega[,icol] = sqrt(G[,diagIndices[icol]])
+  omega[,icol] = sqrt(G[,diagIndices[icol]])       # G = Sigma in the symmetric cases
   # omega[,icol] = sqrt(G[,diagIndices[icol]]/(1-delta[,icol]^2))	# metodo alternativo per ottenere omega
  }
 

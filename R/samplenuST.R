@@ -1,4 +1,4 @@
-samplenuST = function(y, N, particles, priorList){
+samplenuST = function(y, X, N, particles, priorList){
 # Given the arguments, this function returns a population of MC draws for the values of the latent variable Nu, in the p-variate skew-t model.
  n = nrow(y)
 #
@@ -23,5 +23,6 @@ samplenuST = function(y, N, particles, priorList){
   values[inu] = gdls[nuIndices[inu]]
   propdens[inu] = log(nuprobs[nuIndices[inu]])
  }
- return(list(values=values, log.dq=propdens)) #, nuIndices=nuIndices))
+
+ return(list(values=values, log.dq=propdens))
 }

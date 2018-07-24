@@ -1,17 +1,20 @@
-estListUpdate = function(oldEst, newEst, ti){
- estimates = oldEst
- for(iEst in 1:length(estimates)){
-  estimate = estimates[[iEst]]
-  for(iPar in 1:length(estimate)){
-   parEstimate = estimate[[iPar]]
-   newEstimate = newEst[[iEst]][[iPar]]
-   if(length(newEstimate) == 1){
-    estimates[[iEst]][[iPar]] = c(parEstimate, as.numeric(newEstimate))
-   } else {
-    estimates[[iEst]][[iPar]] = rbind(parEstimate, newEstimate)
-    rownames(estimates[[iEst]][[iPar]]) = NULL
+estListUpdate = function(oldEst, newEst, parInfo, ti){
+ parIndices = which(!(parInfo$names %in% c('z', 'v')))
+ parNames = parInfo$names[parIndices]
+ parTypes = parInfo$type[parIndices]
+ nPars = length(parNames)
+ for(iEst in 1:length(oldEst)){
+  for(iPar in 1:nPars){
+   if(parTypes[iPar] == 'u'){
+    oldEst[[iEst]][[iPar]][ti] = newEst[[iEst]][[iPar]]
+   }
+   if(parTypes[iPar] %in% c('m','SM')){
+    oldEst[[iEst]][[iPar]][ti,] = newEst[[iEst]][[iPar]]
+   }
+   if(parTypes[iPar] == 'M'){
+    oldEst[[iEst]][[iPar]][,,ti] = newEst[[iEst]][[iPar]]
    }
   }
  }
- return(estimates)
+ return(oldEst)
 }

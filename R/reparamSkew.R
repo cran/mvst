@@ -1,6 +1,5 @@
-reparamSkew = function(N, particles){
+reparamSkew = function(N, p, particles){
  # Reparameterization function
- p = ncol(particles$xi)
  n.pmat.indices.wo = p * (p-1) / 2
  #
  alpha = matrix(0, N, p)

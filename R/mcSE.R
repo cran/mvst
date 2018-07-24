@@ -1,16 +1,29 @@
-mcSE = function(y, N, Ti, modelType='ST', warmUp=FALSE, control=list()){
+mcSE = function(y, X=NULL, N, Ti, modelType='ST', warmUp=FALSE, control=list()){
 
  # Checks
+ if(is.data.frame(y)) y = as.matrix(y)
+ if(is.vector(y)) y = matrix(y, ncol=1)
+ dimnames(y) = NULL
+ n = nrow(y)
  p = ncol(y)
- if(is.null(p)) stop('The mcSE function is not yet implemented for univariate data.\n')
+# if(is.null(p)) stop('The mcSE function is not yet implemented for univariate data.\n')
+ XFlag = !is.null(X)
+ if(XFlag){
+#  if(!is.matrix(X)) X = as.matrix(X)
+  attr(X, 'dimnames') = NULL
+  if(!is.matrix(X)) stop('mcSE.R: the object X is not a matrix.\n')
+  if(nrow(X) != n) stop('mcSE.R: matrices y and X should have the same number of rows.\n')
+#  k = ncol(X)
+  if(!identical(X[,1], rep(1,n))) warning('mcSE.R: the first column of X does not contain a constant term. A regression model without intercept will be estimated.\n')
+ }
 
  # Control list
- con = list(seed=NULL, simFlag=FALSE, propFuncs=NULL, postDensFunc=NULL, Nwu=rep(2000,3), saveParticles=FALSE, outFolder='Output', verbose=TRUE)
+ con = list(seed=NULL, propFuncs=NULL, logPriorFunc=NULL, Nwu=c(N/10, N/5, N/2), priorList=NULL, saveParticles=FALSE, outFolder='Output', verbose=TRUE, parInfo=NULL)
  conNames = names(con)
  controlNames = names(control)
  if(length(control) > 0) con[controlNames] = control
  if(length(missNames <- controlNames[!controlNames %in% conNames]) > 0) 
- warning('Unknown objects in control list: ', paste(missNames, collapse=', '))
+ warning('mcSE.R: unknown objects in control list: ', paste(missNames, collapse=', '))
  #
  saveParticles = con$saveParticles
  if(saveParticles){
@@ -18,35 +31,34 @@ mcSE = function(y, N, Ti, modelType='ST', warmUp=FALSE, control=list()){
   if(!(outFolder %in% dir())){
    dir.create(outFolder, recursive=T)
   }
-  if(!('Iterations' %in% dir(outFolder))){
-   dir.create(paste(outFolder, '/Iterations', sep=''), recursive=T)
-  }
  }
  Nwu = con$Nwu
  verbose = con$verbose
 
  # List of parameters, by type
- if(modelType %in% c('N','T','SN','ST')){
-  parTypes = modelParTypes(modelType)
+ if((is.null(con$parInfo)) & (modelType %in% c('N','T','SN','ST'))){
+#  parTypes = modelParTypes(modelType, XFlag)
+  parInfo = modelParInfo(y, X, modelType)
  } else {
-  parTypes = control$parTypes
+#  parTypes = control$parTypes
+  parInfo = con$parInfo
  }
 
  # Proposal distributions
  if('propFuncs' %in% controlNames){
-  if(!(all(names(con$propFuncs) %in% parTypes) & (length(con$propFuncs) == length(parTypes)))){
-   stop('Proposal distributions are badly specified.\n')
+  if(!(all(names(con$propFuncs) %in% parInfo$names) & (length(con$propFuncs) == nrow(parInfo)))){
+   stop('mcSE.R: proposal distributions are badly specified.\n')
   } else {
    propFuncs = control$propFuncs
   }
  } else {
-  propFuncs = paste('sample', parTypes, modelType, sep='')
-  names(propFuncs) = parTypes
+  propFuncs = paste('sample', parInfo$names, modelType, sep='')
+  names(propFuncs) = parInfo$names
  }
 
  # Prior density
  if('logPriorFunc' %in% controlNames){
-  logPriorFunc = control$postDensFunc
+  logPriorFunc = control$logPriorFunc
  } else {
   logPriorFunc = paste('logPriorDens', modelType, sep='')
  }
@@ -56,26 +68,29 @@ mcSE = function(y, N, Ti, modelType='ST', warmUp=FALSE, control=list()){
 
  # Hyperparameters
  if(is.null(con$priorList)){
-  nuVals = c(1,2,3,4,5,6,8,10,12,14,16,18,20,30,40,50,60,80,100)
-  priorList = list(m=0, W = matrix(0, p, p), gdls = nuVals, nulogpriors = rep(-log(length(nuVals)), length(nuVals)))
- rm(nuVals)
+  nuVals = 1:30 # c(1, 2, 3, 4, 5, 10, 15, 20, 30, 100)
+  nuLogProbs = log(villaPrior(d=p, nuMax=max(nuVals)))
+  priorList = list(m=0, W = matrix(0, p, p), gdls = nuVals, nulogpriors = nuLogProbs)
+  rm(nuVals, nuLogProbs)
  } else {
   priorList = con$priorList
  }
 
  # Initialization
  if(!is.null(con$seed)) set.seed(con$seed)
- log.py = nResampled = perplexity = numeric(Ti)
- estList = estListInit(parTypes)
- iterEst = NULL		# Object in iterSummary
- log.py.ti = NULL		# Object in iterSummary
- nResampled.ti = NULL	# Object in iterSummary
+ log.py = numeric(Ti)
+ nResampled = numeric(Ti)
+ perplexity = numeric(Ti)
+ estList = estListInit(parInfo, Ti)
+ iterEst = NULL 		# Object in iterSummary
+ log.py.ti = NULL 		# Object in iterSummary
+ nResampled.ti = NULL  	# Object in iterSummary
  perplexity.ti = NULL	# Object in iterSummary
 
- # Initialion of the particles
+ # Initialization of the particles
  initialFuncName = paste('initialPoints', modelType, sep='')
  if(warmUp == T) Ninit = Nwu[1] else Ninit = N
- particles = do.call(initialFuncName, list(N=Ninit, y=y, priorList=priorList))
+ particles = do.call(initialFuncName, list(N=Ninit, y=y, X=X, priorList=priorList))
 
  # Warm-up iterations
  if(warmUp){
@@ -84,7 +99,7 @@ mcSE = function(y, N, Ti, modelType='ST', warmUp=FALSE, control=list()){
   NwuStar = c(Nwu, N)
   for(ti in 1:Tiwu){
    if(verbose) cat('\n', ti,'  ')
-   particles = WUiterations(particles, NwuStar[ti], NwuStar[ti+1], ti, Ti, y, modelType, priorList, parTypes, propFuncs, logPriorFunc, logPostFunc, saveParticles, outFolder, verbose)
+   particles = WUiterations(particles, NwuStar[ti], NwuStar[ti+1], ti, Ti, y, X, modelType, priorList, parInfo, propFuncs, logPriorFunc, logPostFunc, saveParticles, outFolder, verbose)
   }
  }
 
@@ -92,18 +107,21 @@ mcSE = function(y, N, Ti, modelType='ST', warmUp=FALSE, control=list()){
  if(verbose) cat('\nIterations','\n')
  for(ti in 1:Ti){
   if(verbose) cat('\n', ti,'  ')
-  iterSummary = iterations(particles, N, ti, Ti, y, modelType, priorList, parTypes, propFuncs, logPriorFunc, logPostFunc, saveParticles, outFolder, verbose)
+  iterSummary = iterations(particles, N, ti, Ti, y, X, modelType, priorList, parInfo, propFuncs, logPriorFunc, logPostFunc, saveParticles, outFolder, verbose)
   for(iItem in 1:length(iterSummary)) assign(names(iterSummary)[iItem], iterSummary[[iItem]])
 #  iterWeights[ti] = iterWeight	# From iterSummary
-  estList = estListUpdate(estList, iterEst, ti)	# From iterSummary
+  estList = estListUpdate(estList, iterEst, parInfo, ti)	# From iterSummary
   log.py[ti] = log.py.ti			# From iterSummary
   nResampled[ti] = nResampled.ti	# From iterSummary
   perplexity[ti] = perplexity.ti	# From iterSummary
   rm(iterSummary)
  }
+ if(verbose) cat('\n')
 
- mcSE.output = list(estList=estList, log.py=log.py, nResampled=nResampled, perplexity=perplexity)
+# mcSE.output = append(estList, list(log.py=log.py, nResampled=nResampled, perplexity=perplexity, parInfo=parInfo))
+ mcSE.output = list(estlist=estList, log.py=log.py, nResampled=nResampled, p=p, perplexity=perplexity, parInfo=parInfo)
  class(mcSE.output) = 'mcSE'
 
+ # print.summary.mcSE(summary.mcSE(mcSE.output))
  return(mcSE.output)
 }

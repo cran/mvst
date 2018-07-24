@@ -20,12 +20,14 @@ void rzSN(double *absz, double *M, double *RV, int *n, int *p, int *N, double *y
  gsl_permutation *perm = gsl_permutation_alloc(*p);
  gsl_matrix *tpsiinvG = gsl_matrix_calloc(1, *p);	// psi' * G^(-1)
  gsl_matrix *tpsiinvGpsi = gsl_matrix_calloc(1, 1);	// psi' * G^(-1) * psi
- gsl_matrix *ymxi = gsl_matrix_calloc(*p, 1);		// y[i,] - xi[k,]
+ gsl_matrix *ymxi = gsl_matrix_calloc(*p, 1);		// y[i,] - xi[iN,]
  gsl_matrix *tpsiinvGymxi = gsl_matrix_calloc(1, 1);	// psi' * G^(-1) * (y - xi)
 
- double Vi;
+ double Vi[1];
+ double tpsiinvGpsiDouble[1];
+ double tpsiinvGymxiDouble[1];
  int s;
- size_t i, j, jj, k;
+ size_t i, j, jj, iN;
  // Define the data matrix y
  for(i = 0; i < *n; i++){
   for (j = 0; j < *p; j++){
@@ -33,42 +35,43 @@ void rzSN(double *absz, double *M, double *RV, int *n, int *p, int *N, double *y
   }
  }
  // Find M and RV
- for(k = 0; k < *N; k++){	// k = 0;
+ for(iN = 0; iN < *N; iN++){	// iN = 0;
   for (j = 0; j < *p; j++){
-   gsl_matrix_set(xi, j, 0, xiVec[k * *p + j]);
-   gsl_matrix_set(psi, j, 0, psiVec[k * *p + j]);
+   gsl_matrix_set(xi, j, 0, xiVec[iN * *p + j]);
+   gsl_matrix_set(psi, j, 0, psiVec[iN * *p + j]);
    for (jj = 0; jj < *p; jj++){
-    gsl_matrix_set(G, j, jj, GVec[k * *p * *p + jj * *p + j]);
+    gsl_matrix_set(G, j, jj, GVec[iN * *p * *p + jj * *p + j]);
    }
   }
-//		double Gel = gsl_matrix_get(G, 0, 0);
-//		*temp = Gel;
   gsl_linalg_LU_decomp (G, perm, &s);
   gsl_linalg_LU_invert(G, perm, invG);
-/*  for (j = 0; j < *p; j++){
-   for (jj = 0; jj < *p; jj++){
-    double invGelement = gsl_matrix_get(invG, j, jj);
-//    *temp = invGelement;
-   }
-  }*/
   gsl_matrix_set_zero(tpsiinvG);
   gsl_matrix_set_zero(tpsiinvGpsi);
   gsl_blas_dgemm(CblasTrans, CblasNoTrans, 1.0, psi, invG, 1.0, tpsiinvG);
   gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, tpsiinvG, psi, 1.0, tpsiinvGpsi);
-  double tpsiinvGpsiDouble = gsl_matrix_get(tpsiinvGpsi, 0, 0);
-//  	double tpsiinvGDouble = gsl_matrix_get(tpsiinvG, 0, 0);
-// 	*temp = tpsiinvGDouble;
-  Vi = 1 / (1 + tpsiinvGpsiDouble);
+  tpsiinvGpsiDouble[0] = gsl_matrix_get(tpsiinvGpsi, 0, 0);
+  Vi[0] = 1 / (1 + tpsiinvGpsiDouble[0]);
   for(i = 0; i < *n; i++){
-   RV[k * *n + i] = Vi;
+   RV[iN * *n + i] = Vi[0];
    gsl_matrix_set_zero(tpsiinvGymxi);
    for (j = 0; j < *p; j++){
     gsl_matrix_set(ymxi, j, 0, gsl_matrix_get(y, i, j) - gsl_matrix_get(xi, j, 0));
    }
    gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, tpsiinvG, ymxi, 1.0, tpsiinvGymxi);
-   double tpsiinvGymxiDouble = gsl_matrix_get(tpsiinvGymxi, 0, 0);
-   M[k * *n + i] = Vi * tpsiinvGymxiDouble;
-   leftTruncNorm(&(M[k * *n + i]), &(RV[k * *n + i]), &(absz[k * *n + i]));
+   tpsiinvGymxiDouble[0] = gsl_matrix_get(tpsiinvGymxi, 0, 0);
+   M[iN * *n + i] = Vi[0] * tpsiinvGymxiDouble[0];
+   leftTruncNorm(&(M[iN * *n + i]), &(RV[iN * *n + i]), &(absz[iN * *n + i]));
   }
  }
+ gsl_matrix_free(y);
+ gsl_matrix_free(xi);
+ gsl_matrix_free(psi);
+ gsl_matrix_free(G);
+ gsl_matrix_free(invG);
+ gsl_matrix_free(ymxi);
+ gsl_permutation_free(perm);
+ gsl_matrix_free(tpsiinvG);
+ gsl_matrix_free(tpsiinvGpsi);
+ gsl_matrix_free(tpsiinvGymxi);
 }
+

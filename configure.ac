@@ -1,5 +1,5 @@
 ## This file is written according to the vignette file of the RcppGSL package, by Dirk Eddelbuettel and Romain Francois
-AC_INIT([mvst], 1.0.1)
+AC_INIT([mvst], 1.1.0)
 ## Use gsl-config to find arguments for compiler and linker flags
 ## Check for non-standard programs: gsl-config(1)
 AC_PATH_PROG([GSL_CONFIG], [gsl-config])

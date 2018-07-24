@@ -1,8 +1,8 @@
-samplexiSN = function(y, N, particles, priorList){
+samplexiSN = function(y, X, N, particles, priorList){
 # Given the arguments, this function returns a population of MC draws for the values of the variable Xi, in the p-variate skew-N model.
  n = nrow(y)
  p = ncol(y)
-#
+ #
  pmat.indices.wVEC = triangleIndices(p, side='u', dgn=T, dataframe=F)
  pmat.indices.wDF = triangleIndices(p, side='u', dgn=T, dataframe=T)
  n.pmat.indices.w = p * (p+1) / 2
@@ -31,5 +31,6 @@ samplexiSN = function(y, N, particles, priorList){
   xi[iN,] = xi.iN
   log.dxi[iN] = dmnorm(as.numeric(xi.iN), mxi[iN,], vxi.iN, log=TRUE)
  }
- return(list(values=xi, log.dq=log.dxi))# , repxi=Rxi))
+ #
+ return(list(values=xi, log.dq=log.dxi))
 }

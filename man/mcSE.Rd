@@ -26,7 +26,7 @@ If saveParticles is TRUE, the lists of the sampled particles, the importance wei
 To estimate regression models with skewed errors, it is sufficient to specify the argument X, which should contain the design matrix.
 
 The (optional) argument control can provide a list with the following elements
-\itemize{
+\describe{
  \item{\code{seed}}{ if different from NULL, sets the random seed for replicability purposes.}
  \item{\code{parInfo}}{ data.frame containing the informations about the model parameters. Each row of the data.frame should contain the names of the parameters, the type (u: 'univariate', m: 'multivariate', M: 'matrix-variate', SM: 'symmetric matrix-variate'), the number nCols of elements, or columns, of the parameter and the number nRows of rows (eventually 1). Required if the modelType is not already implemented.}
  \item{\code{propFuncs}}{ named character vector with the names of the functions for the proposal distributions. The names of the elements of propFuncs should be the relevant elements of the set ('z', 'v', 'xi', 'psi', 'G', 'nu'). Custom proposal functions should require at least four arguments: y, the data matrix, X, the covariates (NULL if not relevant), particles, that is the list of current values of the parameters, for each particle, and priorList, a list containing the hyperparameters of the prior distributions. It should return two objects: values (the proposed values for the parameter, for each particle) and log.dq (vector with the N (log-)values of the proposal density).}

@@ -1,5 +1,5 @@
 ## This file is written according to the vignette file of the RcppGSL package, by Dirk Eddelbuettel and Romain Francois
-AC_INIT([mvst], 1.1.0)
+AC_INIT([mvst],[1.1.1])
 ## Use gsl-config to find arguments for compiler and linker flags
 ## Check for non-standard programs: gsl-config(1)
 AC_PATH_PROG([GSL_CONFIG], [gsl-config])
@@ -14,5 +14,6 @@ fi
 # Now substitute these variables in src/Makevars.in to create src/Makevars
 AC_SUBST(GSL_CFLAGS)
 AC_SUBST(GSL_LIBS)
-AC_OUTPUT(src/Makevars)
+AC_CONFIG_FILES([src/Makevars])
+AC_OUTPUT
 

@@ -1,0 +1,13 @@
+year <- sub("-.*", "", meta$Date)
+note <- sprintf("R package version %s", meta$Version)
+
+bibentry(bibtype = "Manual",
+ title = "{mvst}: Bayesian Inference for the Multivariate Skew-t Model",
+ author = c(person("Antonio", "Parisi", role = c("aut", "cre"), email = "antonio.parisi@uniroma2.it"),
+                 person("Brunero", "Liseo", role = "aut"),
+                 person("Dirk", "Eddelbuettel", role = "ctb"),
+                 person("Romain", "Francois", role = "ctb")),
+ year = year,
+ note = note,
+ url = "https://CRAN.R-project.org/package=mvst")
+

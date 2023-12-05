@@ -1,8 +1,8 @@
 Package: mvst
 Type: Package
 Title: Bayesian Inference for the Multivariate Skew-t Model
-Version: 1.1.0
-Date: 2018-07-24
+Version: 1.1.1
+Date: 2023-12-05
 Author: Antonio Parisi [aut, cre],
     Brunero Liseo [aut],
     Dirk Eddelbuettel [ctb],
@@ -18,6 +18,6 @@ SystemRequirements: GNU Scientific Library
 License: GPL-3
 Imports: MCMCpack, mvtnorm, mnormt
 NeedsCompilation: yes
-Packaged: 2018-07-24 14:07:48 UTC; antonio
+Packaged: 2023-12-05 13:29:21 UTC; user
 Repository: CRAN
-Date/Publication: 2018-07-24 14:30:03 UTC
+Date/Publication: 2023-12-05 23:10:02 UTC

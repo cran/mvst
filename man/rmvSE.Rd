@@ -17,7 +17,7 @@
 }
 
 \value{A list with three elements
- \itemize{
+ \describe{
   \item{\code{y}}{ n x p matrix of the random draws from a p-variate SE distribution.}
   \item{\code{z}}{ vector of the latent values z (NULL for symmetric models)}
   \item{\code{v}}{ vector of the latent values v (NULL for the N and SN models)}
